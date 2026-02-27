@@ -1,0 +1,50 @@
+﻿@page "/"
+
+@inject BrowserResizeService Resize
+
+<h3>Window Size</h3>
+<p>@Resize.Current</p>
+
+<button class="btn btn-primary"
+        style="width:@ScaledButtonWidthpx; height:@ScaledButtonHeightpx;">
+    Auto-Sizing Button
+</button>
+
+@code {
+    private const double PageWidth = 800;
+    private const double PageHeight = 600;
+    private const double BaseButtonWidth = 150;
+    private const double BaseButtonHeight = 50;
+    // ---------------------------------------
+    // SCALED DIMENSIONS (numbers only)
+    // ---------------------------------------
+    double ScaledButtonWidth => BaseButtonWidth * (Resize.Current.Width / PageWidth);
+    double ScaledButtonHeight => BaseButtonHeight * (Resize.Current.Height / PageHeight);
+    // ---------------------------------------
+    // Converts to string and concatenates px at end for styling.
+    // ---------------------------------------
+    string ScaledButtonWidthpx => ScaledButtonWidth.ToString() + "px";
+    string ScaledButtonHeightpx => ScaledButtonHeight.ToString() + "px";
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Resize.InitializeAsync();
+            Resize.Resized += OnResized;
+            StateHasChanged();
+        }
+    }
+
+    private void OnResized(object? sender, BrowserSize size)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        Resize.Resized -= OnResized;
+        await Resize.DisposeAsync();
+    }
+}
